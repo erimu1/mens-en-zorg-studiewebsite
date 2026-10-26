@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f2">
+  <title>Mens &amp; Zorg — leer en oefen</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172b25;
+      --muted: #64756d;
+      --paper: #f5f7f2;
+      --white: #fff;
+      --green: #176b52;
+      --green-dark: #10533f;
+      --action-bg: #176b52;
+      --action-hover: #10533f;
+      --mint: #e6f2eb;
+      --card-ink: #40564b;
+      --soft: #f7f9f6;
+      --correct-bg: #eaf6ed;
+      --incorrect-bg: #fff0ed;
+      --answer-hover: #f8fbf8;
+      --stat-bg: rgba(255, 255, 255, .7);
+      --progress-bg: #e9eee9;
+      --line: #dce5dd;
+      --peach: #fff0df;
+      --red: #a33d35;
+      --shadow: 0 14px 38px rgba(28, 55, 43, .08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --ink: #e8f1eb;
+      --muted: #a8b8ae;
+      --paper: #111a16;
+      --white: #1b2821;
+      --green: #78c8a3;
+      --green-dark: #8ed8b5;
+      --action-bg: #286348;
+      --action-hover: #337957;
+      --mint: #22382c;
+      --card-ink: #d1e0d5;
+      --soft: #202e26;
+      --correct-bg: #243d2e;
+      --incorrect-bg: #432c29;
+      --answer-hover: #25372c;
+      --stat-bg: #1b2821;
+      --progress-bg: #34473b;
+      --line: #34473b;
+      --red: #ff9d91;
+      --shadow: 0 14px 38px rgba(0, 0, 0, .22);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1100px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 20px 0; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 800; letter-spacing: -.03em; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; color: white; background: var(--action-bg); }
+    .theme-toggle { display: inline-flex; align-items: center; gap: 8px; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+    .hero { padding: 48px 0 32px; }
+    .eyebrow { color: var(--green); text-transform: uppercase; letter-spacing: .13em; font-size: .75rem; font-weight: 800; }
+    h1 { max-width: 760px; margin: 12px 0; font-size: clamp(2.5rem, 7vw, 4.8rem); line-height: .99; letter-spacing: -.065em; }
+    .hero p { max-width: 610px; color: var(--muted); font-size: 1.08rem; line-height: 1.7; }
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .stat { padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--stat-bg); font-size: .9rem; color: var(--muted); }
+    .stat strong { color: var(--ink); }
+    .workspace { margin: 14px 0 70px; padding: 22px; border: 1px solid var(--line); border-radius: 24px; background: var(--white); box-shadow: var(--shadow); }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .tab { border: 0; border-radius: 999px; padding: 10px 16px; color: var(--muted); background: transparent; font-weight: 700; }
+    .tab:hover, .tab.active { color: white; background: var(--action-bg); }
+    .panel { padding: 24px 2px 4px; }
+    .panel[hidden] { display: none; }
+    .panel-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .panel-heading h2 { margin: 0 0 5px; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.04em; }
+    .panel-heading p { margin: 0; color: var(--muted); line-height: 1.5; }
+    .controls { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+    select, .search { min-height: 42px; padding: 9px 13px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--white); }
+    .search { width: min(100%, 320px); }
+    .button { min-height: 42px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--white); font-weight: 700; }
+    .button:hover { border-color: var(--green); }
+    .button.primary { border-color: var(--action-bg); color: white; background: var(--action-bg); }
+    .button.primary:hover { border-color: var(--action-hover); background: var(--action-hover); }
+    .button:disabled { cursor: not-allowed; color: var(--muted); border-color: var(--line); background: var(--soft); opacity: 1; }
+    .study-card { display: flex; min-height: 300px; flex-direction: column; justify-content: space-between; padding: clamp(24px, 5vw, 48px); border-radius: 20px; background: var(--mint); }
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .chapter-tag { color: var(--green); font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .card-count { color: var(--muted); font-size: .9rem; }
+    .card-content { padding: 30px 0; }
+    .card-content h3 { margin: 0 0 14px; font-size: clamp(2rem, 6vw, 3.7rem); line-height: 1.05; letter-spacing: -.055em; }
+    .card-content p { max-width: 720px; margin: 0; color: var(--card-ink); font-size: clamp(1.05rem, 2.5vw, 1.3rem); line-height: 1.65; }
+    .card-hint { color: var(--muted); font-size: .9rem; }
+    .card-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 15px; }
+    .card-actions > div { display: flex; gap: 8px; }
+    .progress-track { width: 100%; height: 6px; margin: 16px 0 0; overflow: hidden; border-radius: 10px; background: var(--progress-bg); }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--green); transition: width .2s ease; }
+    .quiz-box { max-width: 760px; margin: 0 auto; }
+    .quiz-progress { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; color: var(--muted); font-size: .9rem; }
+    .quiz-question { margin: 26px 0 20px; font-size: clamp(1.5rem, 4vw, 2.3rem); letter-spacing: -.045em; }
+    .answers { display: grid; gap: 10px; }
+    .answer { width: 100%; padding: 15px 17px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); background: var(--white); text-align: left; line-height: 1.5; }
+    .answer:hover:not(:disabled) { border-color: var(--green); background: var(--answer-hover); }
+    .answer.correct { border-color: #6eb18a; background: var(--correct-bg); }
+    .answer.incorrect { border-color: #d9897e; background: var(--incorrect-bg); }
+    .quiz-feedback { min-height: 30px; margin: 14px 0; color: var(--muted); line-height: 1.5; }
+    .quiz-feedback.good { color: var(--green); font-weight: 700; }
+    .quiz-feedback.bad { color: var(--red); }
+    .quiz-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+    .quiz-start { padding: 26px; border-radius: 18px; background: var(--soft); }
+    .quiz-start p { color: var(--muted); line-height: 1.6; }
+    .glossary-list { display: grid; gap: 10px; }
+    .glossary-item { display: grid; grid-template-columns: minmax(150px, .75fr) 2fr; gap: 18px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+    .glossary-item h3 { margin: 0; font-size: 1rem; }
+    .glossary-item p { margin: 0; color: var(--muted); line-height: 1.55; }
+    .glossary-chapter { grid-column: 1 / -1; margin: 13px 0 0; padding: 8px 0 0; border-top: 1px solid var(--line); color: var(--green); font-size: .76rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .empty { padding: 30px; color: var(--muted); text-align: center; }
+    footer { padding: 0 0 35px; color: var(--muted); text-align: center; font-size: .9rem; }
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 24px, 1100px); }
+      .hero { padding-top: 32px; }
+      .workspace { padding: 14px; border-radius: 18px; }
+      .panel { padding-top: 18px; }
+      .panel-heading { align-items: stretch; flex-direction: column; }
+      .study-card { min-height: 270px; }
+      .card-actions { align-items: stretch; flex-direction: column; }
+      .card-actions > div { display: grid; grid-template-columns: 1fr 1fr; }
+      .card-actions .button { width: 100%; }
+      .glossary-item { grid-template-columns: 1fr; gap: 7px; }
+      .glossary-chapter { grid-column: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar shell">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">MZ</span> Mens &amp; Zorg</div>
+    <button class="button theme-toggle" id="theme-toggle" type="button" aria-pressed="false">🌙 Donkere modus</button>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow">Jouw persoonlijke leerplek</div>
+      <h1>Leer het. Oefen het. <span style="color:var(--green)">Ken het.</span></h1>
+      <p id="hero-description">Bereid je voor op je toets Mens &amp; Zorg. Bekijk de begrippen per hoofdstuk, test jezelf en herhaal wat je nog lastig vindt.</p>
+      <div class="stats" aria-label="Inhoud van de leeromgeving">
+        <span class="stat"><strong id="term-total">0</strong> begrippen</span>
+        <span class="stat"><strong id="chapter-total">4</strong> hoofdstukken</span>
+        <span class="stat">Leerkaarten + oefentoets</span>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Kies een vak" style="margin-bottom:14px">
+      <button class="tab active" type="button" data-subject="zorg" aria-pressed="true">Mens en Zorg</button>
+      <button class="tab" type="button" data-subject="gezondheid" aria-pressed="false">Mens en Gezondheid</button>
+      <button class="tab" type="button" data-subject="omgeving" aria-pressed="false">Mens en Omgeving</button>
+      <button class="tab" type="button" data-subject="activiteit" aria-pressed="false">Mens en Activiteit</button>
+    </nav>
+
+    <section class="workspace" aria-label="Studieomgeving">
+      <nav class="tabs" aria-label="Kies een studiemodus">
+        <button class="tab active" type="button" data-panel="cards-panel" aria-selected="true">Leerkaarten</button>
+        <button class="tab" type="button" data-panel="quiz-panel" aria-selected="false">Oefentoets</button>
+        <button class="tab" type="button" data-panel="glossary-panel" aria-selected="false">Alle begrippen</button>
+      </nav>
+
+      <section class="panel" id="cards-panel">
+        <div class="panel-heading">
+          <div><h2>Leerkaarten</h2><p>Probeer eerst zelf de betekenis te bedenken en draai daarna de kaart om.</p></div>
+          <div class="controls"><label for="card-chapter" class="eyebrow">Hoofdstuk</label><select id="card-chapter" aria-label="Kies hoofdstuk voor leerkaarten"></select></div>
+        </div>
+        <article class="study-card" aria-live="polite">
+          <div class="card-top"><span class="chapter-tag" id="card-chapter-name"></span><span class="card-count" id="card-count"></span></div>
+          <div class="card-content"><h3 id="card-term"></h3><p id="card-definition" hidden></p><span class="card-hint" id="card-hint">Weet jij wat dit begrip betekent?</span></div>
+          <div><button class="button primary" type="button" id="flip-card">Toon betekenis</button></div>
+        </article>
+        <div class="progress-track" role="progressbar" aria-label="Voortgang leerkaarten" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" id="card-progress"></div></div>
+        <div class="card-actions">
+          <span class="card-count">Tip: leg de betekenis hardop uit in je eigen woorden.</span>
+          <div><button class="button" type="button" id="previous-card">← Vorige</button><button class="button primary" type="button" id="next-card">Volgende →</button></div>
+        </div>
+      </section>
+
+      <section class="panel" id="quiz-panel" hidden>
+        <div class="panel-heading">
+          <div><h2>Oefentoets</h2><p>Kies het juiste antwoord. Je krijgt meteen feedback.</p></div>
+        </div>
+        <div class="quiz-box" id="quiz-content"></div>
+      </section>
+
+      <section class="panel" id="glossary-panel" hidden>
+        <div class="panel-heading">
+          <div><h2>Alle begrippen</h2><p>Zoek snel een begrip op of herhaal alles in één overzicht.</p></div>
+          <div class="controls"><label for="glossary-search" class="eyebrow">Zoeken</label><input class="search" id="glossary-search" type="search" placeholder="Bijvoorbeeld: eigen regie" autocomplete="off"></div>
+        </div>
+        <div class="controls" style="margin-bottom:16px"><label for="glossary-chapter" class="eyebrow">Hoofdstuk</label><select id="glossary-chapter" aria-label="Filter begrippen op hoofdstuk"></select></div>
+        <div class="glossary-list" id="glossary-list"></div>
+      </section>
+    </section>
+  </main>
+  <footer class="shell">Veel succes met leren — je kunt dit! 🌱</footer>
+
+  <script>
+    const zorgChapters = [
+      { id: 1, name: "Hoofdstuk 1 · Zorg en welzijn", terms: [
+        ["Welbevinden", "Hoe goed iemand zich voelt, lichamelijk, geestelijk en sociaal."],
+        ["Doelgroep", "Een groep mensen met gedeelde kenmerken of behoeften voor wie een dienst of activiteit bedoeld is."],
+        ["Consult", "Een gesprek of afspraak met een zorgverlener om een vraag, klacht of behandeling te bespreken."],
+        ["Eerstelijnszorg", "Direct toegankelijke zorg waar je meestal zonder verwijzing terechtkunt, zoals bij de huisarts, tandarts of fysiotherapeut."],
+        ["Tweedelijnszorg", "Meer gespecialiseerde zorg waarvoor meestal een verwijzing nodig is, bijvoorbeeld zorg in het ziekenhuis."],
+        ["Zorgvraag", "De behoefte aan hulp, ondersteuning of behandeling die iemand zelf aangeeft of die door een zorgverlener wordt vastgesteld."],
+        ["Intramurale zorg", "Zorg die iemand ontvangt terwijl diegene in een zorginstelling woont of verblijft, zoals een verpleeghuis."],
+        ["Extramurale zorg", "Zorg die buiten een zorginstelling wordt verleend, bijvoorbeeld thuis of in de wijk."],
+        ["Thuiszorg", "Verpleging, verzorging of ondersteuning die bij iemand thuis wordt gegeven."],
+        ["Verpleeghuis", "Een woonzorginstelling voor mensen die langdurig intensieve verzorging, verpleging of behandeling nodig hebben."],
+        ["Zorgwoning", "Een woning die geschikt is gemaakt voor mensen met een zorgbehoefte, vaak met voorzieningen of zorg dichtbij."],
+        ["Zintuiglijke beperking", "Een beperking in één of meer zintuigen, zoals zien, horen, voelen, ruiken of proeven."],
+        ["Geestelijke gezondheidszorg (GGZ)", "Zorg en ondersteuning bij psychische problemen en psychiatrische aandoeningen."],
+        ["Depressie", "Een psychische aandoening waarbij iemand langere tijd somber is en/of weinig plezier of interesse ervaart, vaak met andere klachten."],
+        ["Symptoom", "Een verschijnsel of klacht die kan wijzen op een aandoening, zoals pijn, koorts of vermoeidheid."],
+        ["Ambulante zorg", "Zorg waarbij iemand niet in een instelling wordt opgenomen; de zorg vindt bijvoorbeeld thuis of tijdens afspraken plaats."]
+      ]},
+      { id: 2, name: "Hoofdstuk 2 · Dossier en zorg", terms: [
+        ["Zorgdossier", "Een verzameling gegevens over iemands zorg, afspraken, gezondheid en ondersteuning."],
+        ["ECD", "Elektronisch Cliënten Dossier: digitale vastlegging van gegevens en afspraken over de zorg en ondersteuning van een cliënt."],
+        ["EPD", "Elektronisch Patiënten Dossier: digitaal dossier met medische gegevens van een patiënt, vooral gebruikt in de gezondheidszorg."],
+        ["AVG", "Algemene verordening gegevensbescherming: Europese privacywet die regels geeft voor het verzamelen en gebruiken van persoonsgegevens."],
+        ["Zorgleefplan", "Een plan met afspraken over de zorg, ondersteuning, wensen en doelen van een cliënt."],
+        ["Eigen regie", "De mogelijkheid en het recht van iemand om zelf keuzes te maken en invloed te hebben op het eigen leven en de zorg."],
+        ["Vraaggericht werken", "Zorg en ondersteuning afstemmen op de wensen, behoeften en doelen van de cliënt."],
+        ["Observeren", "Aandachtig en doelgericht kijken, luisteren en waarnemen om informatie over iemand of een situatie te verzamelen."],
+        ["Rapporteren", "Belangrijke waarnemingen, gebeurtenissen en geboden zorg duidelijk vastleggen, zodat anderen de informatie kunnen gebruiken."],
+        ["Objectief", "Gebaseerd op waarneembare feiten, zonder persoonlijke mening of interpretatie."],
+        ["Subjectief", "Gebaseerd op iemands persoonlijke gevoel, ervaring of mening."],
+        ["Formele zorg", "Zorg die wordt gegeven door beroepskrachten of georganiseerde zorgverleners."],
+        ["Informele zorg", "Zorg of hulp die niet beroepsmatig wordt gegeven, bijvoorbeeld door familie, vrienden of buren."],
+        ["Mantelzorg", "Langdurige, onbetaalde hulp aan iemand uit de eigen omgeving die zorg nodig heeft; de hulp gaat verder dan gebruikelijke hulp."]
+      ]},
+      { id: 3, name: "Hoofdstuk 3 · Communicatie en houding", terms: [
+        ["Communiceren", "Informatie, gedachten of gevoelens uitwisselen tussen mensen."],
+        ["Verbale communicatie", "Communicatie met woorden, gesproken of geschreven."],
+        ["Non-verbale communicatie", "Communicatie zonder woorden, bijvoorbeeld via gezichtsuitdrukking, houding, gebaren of stemgebruik."],
+        ["Formeel communiceren", "Communiceren op een professionele, beleefde en passende manier, bijvoorbeeld met een cliënt of collega."],
+        ["Informeel communiceren", "Communiceren op een losse, persoonlijke manier, bijvoorbeeld met vrienden of familie."],
+        ["Actief luisteren", "Aandachtig luisteren, belangstelling tonen en laten merken dat je de ander probeert te begrijpen."],
+        ["LSD", "Luisteren, Samenvatten en Doorvragen: een manier om goed te luisteren en te controleren of je de ander begrijpt."],
+        ["Open vraag", "Een vraag die uitnodigt tot een uitgebreider antwoord, vaak beginnend met hoe, wat of waarom."],
+        ["Gesloten vraag", "Een vraag die meestal met ja, nee of een kort, vast antwoord kan worden beantwoord."],
+        ["Beroepshouding", "De professionele manier waarop je je gedraagt en je werk uitvoert, met passende normen, waarden en verantwoordelijkheidsgevoel."],
+        ["Respect", "Erkenning en waardering tonen voor de waardigheid, grenzen, keuzes en verschillen van een ander."],
+        ["Normen", "Regels en verwachtingen over hoe mensen zich in een groep of samenleving horen te gedragen."],
+        ["Waarden", "Principes of idealen die iemand belangrijk vindt, zoals eerlijkheid, zelfstandigheid of veiligheid."],
+        ["Empathie", "Je kunnen inleven in de gevoelens en het perspectief van een ander, zonder die gevoelens per se zelf te ervaren."],
+        ["Intieme zone", "De ruimte heel dicht bij iemands lichaam. De precieze grens verschilt per persoon en situatie; vraag toestemming voordat je dichtbij komt of iemand aanraakt."],
+        ["Revalidatie", "Behandeling en begeleiding om na ziekte, een ongeval of beperking functies en zelfstandigheid zo goed mogelijk terug te krijgen."],
+        ["Assertief", "Op een duidelijke en respectvolle manier opkomen voor je eigen mening, wensen en grenzen, met respect voor die van anderen."],
+        ["Feedback", "Informatie over iemands gedrag of werk, bedoeld om inzicht te geven en te helpen leren of verbeteren."]
+      ]},
+      { id: 4, name: "Hoofdstuk 4 · Persoonlijke verzorging", terms: [
+        ["Persoonlijke verzorging", "Dagelijkse zorg voor het eigen lichaam, zoals wassen, aankleden, mondverzorging en naar het toilet gaan."],
+        ["Hygiëne", "Maatregelen en gewoonten die helpen om gezond en schoon te blijven en verspreiding van ziekteverwekkers te voorkomen."],
+        ["Weerstand", "Het vermogen van het lichaam om zich tegen ziekteverwekkers en ziekte te verdedigen."],
+        ["Infectie", "Een ontstekingsreactie die ontstaat doordat ziekteverwekkers, zoals bacteriën of virussen, het lichaam binnendringen en zich vermeerderen."],
+        ["Bacterie", "Een eencellig micro-organisme. Sommige bacteriën zijn nuttig, andere kunnen ziekte veroorzaken."],
+        ["Besmetting", "Het overdragen of oplopen van ziekteverwekkers, bijvoorbeeld via handen, druppeltjes of besmette voorwerpen."],
+        ["Handhygiëne", "Handen op de juiste momenten en op de juiste manier reinigen met water en zeep en/of handalcohol om verspreiding van ziekteverwekkers te beperken."],
+        ["Desinfecteren", "Het aantal ziekteverwekkers op bijvoorbeeld handen of materialen sterk verminderen met een geschikt desinfectiemiddel."],
+        ["Papegaai", "Een beugel of handgreep boven een bed waaraan iemand zich kan vasthouden om zich in bed te verplaatsen of op te richten. Het is geen tilmiddel."],
+        ["Zelfredzaamheid", "In hoeverre iemand dagelijkse handelingen zelf kan uitvoeren en zelf keuzes kan maken."],
+        ["Talg", "Vettige stof die door talgklieren wordt gemaakt en huid en haar helpt beschermen tegen uitdroging."],
+        ["Berg", "Schilferige, vettige plekjes op de hoofdhuid van baby's; meestal onschuldig en niet besmettelijk."],
+        ["Cariës", "Tandbederf waarbij gaatjes in tanden of kiezen ontstaan, vaak door zuren die bacteriën uit suikers maken."],
+        ["Implantaat", "Een kunstmatige vervanging van een tandwortel die in het kaakbot wordt geplaatst, vaak als basis voor een kroon of prothese."],
+        ["Klikgebit", "Een uitneembare gebitsprothese die met speciale verbindingen op implantaten vastklikt."],
+        ["Incontinentie", "Het ongewild verliezen van urine en/of ontlasting."],
+        ["Urine", "Vloeistof die door de nieren wordt gemaakt en via de blaas en plasbuis het lichaam verlaat."],
+        ["Ontlasting", "Resten van voedsel en andere stoffen die via de anus het lichaam verlaten; ook feces genoemd."],
+        ["Zindelijk", "In staat zijn om urine en ontlasting op het gewenste moment op het toilet kwijt te raken."],
+        ["Eigenwaarde", "Het gevoel dat je jezelf waardevol vindt en respecteert."],
+        ["Vergrijzing", "De ontwikkeling waarbij het aandeel ouderen in de bevolking toeneemt."],
+        ["ADL-hulpmiddelen", "Hulpmiddelen die dagelijkse activiteiten (Algemene Dagelijkse Levensverrichtingen) makkelijker of veiliger maken, zoals een aankleedstok of aangepast bestek."],
+        ["Thuiszorgwinkel", "Een winkel of uitleenpunt voor hulpmiddelen voor zorg en dagelijks leven, zoals krukken, een douchestoel of een rollator."]
+      ]}
+    ];
+
+    const gezondheidChapters = [
+      { id: 1, name: "Hoofdstuk 1 · Leefstijl", terms: [
+        ["Leefstijl", "De manier waarop iemand leeft, waaronder gewoonten rond voeding, bewegen, slaap, ontspanning en middelengebruik."],
+        ["Diëtist", "Een deskundige op het gebied van voeding die mensen adviseert en begeleidt bij voedings- en dieetvragen."],
+        ["Leefstijlcoach", "Een coach die iemand ondersteunt bij het aanleren en volhouden van gezonde gewoonten, zoals meer bewegen of beter ontspannen."],
+        ["Regelmatig bewegen", "Vaak genoeg lichamelijk actief zijn, verspreid over de week; dit ondersteunt de gezondheid en conditie."],
+        ["Conditie", "Het vermogen van het lichaam om lichamelijke inspanning vol te houden en ervan te herstellen."]
+      ]},
+      { id: 2, name: "Hoofdstuk 2 · Voeding", terms: [
+        ["Voedingsmiddelen", "Producten die je eet of drinkt, zoals brood, groente, melk en water."],
+        ["Voedingsstoffen", "Stoffen in eten en drinken die het lichaam nodig heeft voor energie, groei, herstel en het goed functioneren."],
+        ["Macro-voedingsstoffen", "Voedingsstoffen die het lichaam in relatief grote hoeveelheden nodig heeft: koolhydraten, vetten en eiwitten."],
+        ["Microvoedingsstoffen", "Voedingsstoffen die het lichaam in kleine hoeveelheden nodig heeft, zoals vitamines en mineralen."],
+        ["Essentiële vitamines", "Vitamines die het lichaam niet of niet voldoende zelf kan maken en daarom uit voeding moet halen."],
+        ["Energiebalans", "De verhouding tussen de energie die je via eten en drinken binnenkrijgt en de energie die je lichaam verbruikt."],
+        ["Vitamines", "Voedingsstoffen die het lichaam in kleine hoeveelheden nodig heeft voor onder andere groei, weerstand en stofwisselingsprocessen."],
+        ["Vetoplosbare vitamines", "Vitamines A, D, E en K. Ze lossen op in vet en kunnen in het lichaam worden opgeslagen."],
+        ["Wateroplosbare vitamines", "Vitamines die oplossen in water, zoals vitamine C en de B-vitamines. Een teveel wordt meestal via de urine uitgescheiden."],
+        ["Mineralen", "Voedingsstoffen, zoals calcium en ijzer, die nodig zijn voor onder andere botten, spieren en andere lichaamsfuncties."],
+        ["Spoorelementen", "Mineralen die het lichaam in zeer kleine hoeveelheden nodig heeft, zoals jodium, zink en selenium."],
+        ["Koolhydraten", "Voedingsstoffen die het lichaam een belangrijke bron van energie leveren; ze zitten bijvoorbeeld in brood, fruit en aardappelen."],
+        ["Vet", "Een voedingsstof die energie levert, helpt bij de opname van vitamines A, D, E en K en het lichaam onder andere isoleert."],
+        ["Verzadigd vet", "Een soort vet dat onder andere voorkomt in boter, kaas en vet vlees. Veel ervan eten kan het LDL-cholesterol verhogen."],
+        ["Onverzadigd vet", "Een soort vet dat onder andere voorkomt in plantaardige oliën, noten en vis; het kan verzadigd vet helpen vervangen."],
+        ["Vezels", "Delen van plantaardige voeding die niet volledig worden verteerd en bijdragen aan een goede werking van de darmen."],
+        ["Eiwitten", "Voedingsstoffen die het lichaam gebruikt voor onder andere opbouw en herstel van spieren en andere weefsels."]
+      ]},
+      { id: 5, name: "Hoofdstuk 5 · Diëten en eetproblemen", terms: [
+        ["Dieet", "Een manier van eten of een voedingspatroon; soms aangepast op advies van een zorgverlener vanwege gezondheid."],
+        ["Symptoom", "Een verschijnsel of klacht die kan wijzen op een aandoening, zoals pijn, jeuk of misselijkheid."],
+        ["Voedingsstofbeperkt dieet", "Een dieet waarbij de hoeveelheid van een bepaalde voedingsstof bewust wordt beperkt, meestal om een medische reden."],
+        ["Natriumbeperkt dieet", "Een dieet waarbij minder natrium wordt gebruikt; natrium zit vooral in zout en kant-en-klare producten."],
+        ["Lactosebeperkt dieet", "Een dieet waarbij lactose, de melksuiker, wordt beperkt vanwege klachten bij het verteren ervan."],
+        ["Energiebeperkt dieet", "Een voedingspatroon met minder energie (calorieën) dan iemand verbruikt, vaak onder begeleiding om gewicht te verminderen."],
+        ["Voedingsstofvrij dieet", "Een dieet waarbij een bepaalde voedingsstof helemaal wordt vermeden, bijvoorbeeld vanwege een allergie of medische behandeling."],
+        ["Koemelkvrij dieet", "Een dieet waarbij producten van koemelk worden vermeden; bij een allergie moet ook op ingrediënten en kruisbesmetting worden gelet."],
+        ["Allergeenvrij dieet", "Een dieet waarbij één of meer allergenen die een allergische reactie veroorzaken zorgvuldig worden vermeden."],
+        ["Voedingsstofverrijkte diëten", "Voedingspatronen waaraan extra van een bepaalde voedingsstof is toegevoegd of waarin daarvan meer wordt gegeten."],
+        ["Energie- en eiwitverrijkt dieet", "Een voedingspatroon met extra energie en eiwitten, bijvoorbeeld om ondervoeding te voorkomen of herstel te ondersteunen."],
+        ["Voedselallergie", "Een reactie van het afweersysteem op een bepaalde stof in voedsel; de reactie kan soms ernstig zijn."],
+        ["Allergenen", "Stoffen die bij mensen met een allergie een allergische reactie kunnen veroorzaken, zoals pinda of koemelkeiwit."],
+        ["Voedselintolerantie", "Moeite met het verwerken van een bepaald voedingsmiddel of bestanddeel, zonder dat het afweersysteem de oorzaak is."],
+        ["Eetstoornis", "Een psychische aandoening waarbij gedachten en gedrag rond eten, gewicht of lichaamsbeeld ernstig verstoord zijn."],
+        ["Anorexia", "Afkorting van anorexia nervosa: een eetstoornis met onder andere een sterke angst om aan te komen en een verstoord lichaamsbeeld."],
+        ["Boulimia", "Afkorting van boulimia nervosa: een eetstoornis met terugkerende eetbuien en gedrag om gewichtstoename tegen te gaan."],
+        ["Obesitas", "Ernstig overgewicht waarbij overtollig lichaamsvet de gezondheid kan schaden."],
+        ["BMI", "Body Mass Index: een getal berekend uit gewicht en lengte dat bij volwassenen een globale aanwijzing geeft over het gewicht; het is geen volledige gezondheidsmeting."],
+        ["Diabetes type 2", "Een aandoening waarbij het lichaam minder gevoelig wordt voor insuline en/of te weinig insuline maakt, waardoor de bloedsuiker te hoog kan worden."]
+      ]},
+      { id: 6, name: "Hoofdstuk 6 · Gezondheid en omgeving", terms: [
+        ["Interne factoren", "Invloeden binnen een persoon die de gezondheid kunnen beïnvloeden, zoals leeftijd, erfelijke aanleg en persoonlijke gewoonten."],
+        ["Externe factoren", "Invloeden van buiten een persoon die de gezondheid kunnen beïnvloeden, zoals de woonomgeving, inkomen en sociale contacten."],
+        ["Gezondheidsdeterminant", "Een factor die invloed heeft op de gezondheid, zoals leefstijl, omgeving, erfelijke aanleg of toegang tot zorg."],
+        ["Fysieke gezondheid", "De gezondheid van het lichaam, waaronder lichamelijk functioneren en de afwezigheid of aanwezigheid van ziekte."],
+        ["Mentale gezondheid", "Hoe iemand zich psychisch voelt en omgaat met gevoelens, gedachten, stress en dagelijkse uitdagingen."],
+        ["Gen", "Een stukje erfelijk materiaal (DNA) met informatie voor eigenschappen en de werking van het lichaam."],
+        ["Welbevinden", "Hoe goed iemand zich voelt, lichamelijk, geestelijk en sociaal."],
+        ["Welvaart", "De mate waarin mensen toegang hebben tot materiële middelen en voorzieningen, zoals inkomen, huisvesting en goederen."],
+        ["Welvaartsziekten", "Aandoeningen die samenhangen met leefstijl en leefomstandigheden, zoals sommige vormen van hart- en vaatziekten en diabetes type 2."],
+        ["Obesogene omgeving", "Een omgeving die het gemakkelijk maakt om weinig te bewegen en energierijk te eten, waardoor gewichtstoename wordt bevorderd."],
+        ["Sociaal netwerk", "De mensen om iemand heen, zoals familie, vrienden, klasgenoten en collega's, die contact of steun kunnen bieden."],
+        ["Sociale druk", "Invloed van anderen om je op een bepaalde manier te gedragen, bijvoorbeeld mee te doen of ergens aan te voldoen."],
+        ["Influencers", "Mensen met een groot online publiek die via sociale media meningen, gedrag of keuzes van volgers kunnen beïnvloeden."],
+        ["Algoritmes", "Rekenregels die online platforms gebruiken om bijvoorbeeld berichten of video's te selecteren en aan gebruikers te tonen."],
+        ["Preventie", "Maatregelen die bedoeld zijn om gezondheidsproblemen te voorkomen, vroeg te ontdekken of gevolgen ervan te beperken."],
+        ["Sociale media", "Online platforms en apps waarop mensen inhoud delen en met elkaar communiceren."],
+        ["Burn-out", "Een toestand van langdurige uitputting en spanningsklachten die kan ontstaan na langdurige overbelasting; laat klachten beoordelen door een deskundige."],
+        ["Dagritme", "De vaste volgorde en tijden van dagelijkse activiteiten, zoals slapen, opstaan, eten, school of werk en ontspanning."],
+        ["Hygiëne", "Maatregelen en gewoonten die helpen om gezond en schoon te blijven en verspreiding van ziekteverwekkers te voorkomen."],
+        ["Voorbehoedsmiddelen", "Middelen of methoden om een zwangerschap te voorkomen; de bescherming tegen soa's verschilt per methode."],
+        ["SOA", "Seksueel overdraagbare aandoening: een infectie die meestal via seksueel contact wordt overgedragen."],
+        ["Anticonceptiepil", "Een hormonaal voorbehoedsmiddel in pilvorm dat bij correct gebruik de kans op zwangerschap sterk verkleint; het beschermt niet tegen soa's."],
+        ["Overtijd", "Als de menstruatie later uitblijft dan verwacht. Dit kan verschillende oorzaken hebben; bij kans op zwangerschap kan een zwangerschapstest duidelijkheid geven."]
+      ]}
+    ];
+
+    const omgevingChapters = [
+      { id: 1, name: "Hoofdstuk 1 · Zorg, welzijn en facilitair", terms: [
+        ["Zorg", "Hulp, ondersteuning of behandeling die gericht is op iemands gezondheid, welzijn en dagelijks functioneren."],
+        ["Welzijn", "Hoe goed iemand zich lichamelijk, geestelijk en sociaal voelt en kan functioneren."],
+        ["Competenties", "De combinatie van kennis, vaardigheden en houding die iemand nodig heeft om een taak goed uit te voeren."],
+        ["Empathisch", "Je kunnen inleven in de gevoelens en het perspectief van een ander en daar begripvol op reageren."],
+        ["Sociale vaardigheden", "Vaardigheden om op een prettige en passende manier met andere mensen om te gaan."],
+        ["Non-verbale communicatie", "Communicatie zonder woorden, bijvoorbeeld met gezichtsuitdrukking, houding, gebaren of oogcontact."],
+        ["Verbale communicatie", "Communicatie met gesproken of geschreven woorden."],
+        ["Facilitair medewerker", "Een medewerker die praktische diensten en voorzieningen verzorgt, zoals schoonmaak, onderhoud of catering."],
+        ["Hygiëne", "Maatregelen en gewoonten die helpen schoon en gezond te blijven en verspreiding van ziekteverwekkers tegen te gaan."],
+        ["Huishoudelijke dagelijkse verrichtingen (HDL)", "Dagelijkse huishoudelijke taken die nodig zijn om een woning schoon, opgeruimd en leefbaar te houden."],
+        ["Bacteriën", "Eencellige micro-organismen. Sommige zijn nuttig; andere kunnen ziekte veroorzaken."],
+        ["Persoonlijke hygiëne", "De verzorging en reinheid van je eigen lichaam, bijvoorbeeld handen wassen en schone kleding dragen."],
+        ["Textiel", "Stoffen en producten van vezels, zoals kleding, handdoeken, beddengoed en schoonmaakdoeken."],
+        ["Telemedicine", "Het op afstand leveren van zorg met digitale communicatiemiddelen, bijvoorbeeld via beeldbellen."],
+        ["Infographic", "Een visuele weergave die informatie duidelijk en beknopt uitlegt met tekst, afbeeldingen, grafieken of diagrammen."]
+      ]},
+      { id: 2, name: "Hoofdstuk 2 · Schoonmaken en duurzaamheid", terms: [
+        ["Hygiëne", "Goede hygiëne helpt gezond te blijven door regelmatig jezelf en de dingen om je heen schoon te houden."],
+        ["Regels en eisen", "Instructies, afspraken en voorwaarden die je moet volgen om veilig, schoon en gezond te werken."],
+        ["Professioneel schoonmaken", "Schoonmaken in opdracht van iemand anders, volgens een vaste planning en gemaakte afspraken."],
+        ["Methodiek", "Een vaste, doelgerichte manier van werken, vaak uitgewerkt als een stappenplan."],
+        ["Schoonmaakplan", "Een overzicht van wat er wordt schoongemaakt, wanneer, waarmee en door wie, met duidelijke afspraken."],
+        ["Efficiënt werken", "Werkzaamheden zo uitvoeren dat tijd, middelen en inspanning goed worden benut en onnodig werk wordt voorkomen."],
+        ["Periodieke werkzaamheden", "Taken die op vaste, terugkerende momenten moeten worden uitgevoerd, bijvoorbeeld dagelijks of wekelijks."],
+        ["Huishoudelijke taken", "Activiteiten om een huis schoon, georganiseerd en goed onderhouden te houden."],
+        ["Routing", "Een vooraf bepaalde schoonmaakvolgorde en looproute waarmee je voorkomt dat schoongemaakte onderdelen opnieuw vuil worden."],
+        ["Schoonmaakmethode", "De manier waarop een oppervlak of voorwerp wordt schoongemaakt."],
+        ["Reinigingsniveau", "De mate waarin en de manier waarop iets moet worden schoongemaakt, afgestemd op het gebruik en de hygiëne-eisen."],
+        ["Droog vuil", "Los vuil dat niet aan een oppervlak vastzit en droog kan worden verwijderd, zoals zand of hondenharen."],
+        ["Aangekleefd vuil", "Vuil dat aan een oppervlak vastzit en meestal met een doek, water of schoonmaakmiddel moet worden verwijderd."],
+        ["Onzichtbaar vuil", "Vuil dat je niet goed kunt zien, zoals micro-organismen of dunne resten op een oppervlak."],
+        ["Klamvochtig reinigen", "Schoonmaken met een goed uitgewrongen, licht vochtige doek, zodat er weinig vocht achterblijft."],
+        ["Micro-organismen", "Zeer kleine organismen, zoals bacteriën en schimmels, die je meestal niet met het blote oog kunt zien."],
+        ["Desinfecteren", "Het aantal ziekteverwekkers op een oppervlak of voorwerp verminderen met een geschikt desinfectiemiddel; meestal na eerst goed reinigen."],
+        ["Microvezeldoek", "Een doek van zeer fijne vezels die vuil en vocht goed kan opnemen, vaak met weinig of geen schoonmaakmiddel."],
+        ["Schoonmaakmiddel", "Een product dat wordt gebruikt om vuil van oppervlakken of materialen los te maken en te verwijderen."],
+        ["Desinfectans", "Een middel dat onder de juiste gebruiksvoorwaarden micro-organismen op een oppervlak of voorwerp onschadelijk maakt of vermindert."],
+        ["Hardheid van water", "De hoeveelheid opgeloste mineralen, vooral calcium en magnesium, in water; hard water kan kalkaanslag veroorzaken."],
+        ["Pictogram", "Een eenvoudig symbool of plaatje dat informatie, een regel of een waarschuwing duidelijk maakt."],
+        ["Voorzorgsmaatregelen", "Stappen die je vooraf neemt om risico's, ongelukken of blootstelling aan schadelijke stoffen te voorkomen."],
+        ["Ventileren", "Binnenlucht voortdurend verversen door verse buitenlucht binnen te laten en vervuilde lucht af te voeren."],
+        ["Luchten", "Een ruimte korte tijd extra verversen, bijvoorbeeld door ramen en deuren open te zetten."],
+        ["Synthetisch schoonmaakmiddel", "Een schoonmaakmiddel dat industrieel is samengesteld, in plaats van rechtstreeks uit natuurlijke grondstoffen te komen."],
+        ["Biologisch afbreekbaar", "Een materiaal of stof dat door micro-organismen in de natuur kan worden afgebroken."],
+        ["Circulaire economie", "Een economie waarin grondstoffen en producten zo lang mogelijk worden gebruikt en afval zoveel mogelijk wordt voorkomen."],
+        ["Re-use en rethink", "Opnieuw gebruiken en opnieuw nadenken over hoe je een product of grondstof slimmer kunt gebruiken."],
+        ["Reduce", "Minder grondstoffen en producten gebruiken, zodat er minder afval en milieubelasting ontstaat."],
+        ["Re-use", "Een product of materiaal opnieuw gebruiken in plaats van het weg te gooien."],
+        ["Repair", "Een kapot product repareren zodat het langer gebruikt kan worden."],
+        ["Recycle", "Afvalmateriaal verwerken tot grondstof voor nieuwe producten."],
+        ["GFT", "Groente-, fruit- en tuinafval; dit afval wordt apart ingezameld en vaak verwerkt tot compost of biogas."],
+        ["PMD", "Plastic verpakkingen, metalen verpakkingen en drankkartons die apart kunnen worden ingezameld; volg de lokale afvalregels."],
+        ["KCA", "Klein chemisch afval: huishoudelijk afval met schadelijke stoffen, zoals batterijen, verfrestanten en bepaalde schoonmaakmiddelen."],
+        ["Ergonomisch werken", "Werken op een manier die de lichamelijke belasting beperkt, bijvoorbeeld door een goede werkhoogte en juiste tiltechniek."],
+        ["Ergonomie", "Het aanpassen van werk, hulpmiddelen en omgeving aan de mogelijkheden van mensen, zodat werken veilig en comfortabeler wordt."],
+        ["Onderhoud", "Regelmatige verzorging, controle en kleine werkzaamheden om materialen, apparaten of ruimtes goed te laten functioneren."],
+        ["Gebruiksaanwijzingen", "Instructies van de fabrikant over hoe je een product of apparaat veilig en op de juiste manier gebruikt."]
+      ]}
+    ];
+
+    const activiteitChapters = [
+      { id: 1, name: "Hoofdstuk 1 · Activiteiten en voorzieningen", terms: [
+        ["Belevingsgerichte activiteiten", "Activiteiten die aansluiten bij iemands persoonlijke beleving, interesses en mogelijkheden, en die plezier of herkenning kunnen geven."],
+        ["Sportieve activiteiten", "Activiteiten waarbij bewegen en sport centraal staan, zoals wandelen, zwemmen of een spel met beweging."],
+        ["Recreatieve activiteiten", "Vrijetijdsactiviteiten die ontspanning en plezier bieden, zoals een spel, hobby of uitstapje."],
+        ["Sociale activiteiten", "Activiteiten waarbij contact en samenzijn met anderen centraal staan."],
+        ["Zelfzorg", "Handelingen waarmee iemand voor zichzelf en het eigen lichaam zorgt, zoals wassen, aankleden en eten."],
+        ["Arbeidsgerichte activiteiten", "Activiteiten die werkvaardigheden, werkritme of voorbereiding op werk oefenen."],
+        ["Educatieve activiteiten", "Activiteiten die gericht zijn op leren, kennis opdoen of vaardigheden ontwikkelen."],
+        ["Thema-activiteiten", "Activiteiten die zijn georganiseerd rond een bepaald onderwerp, seizoen of speciale gebeurtenis."],
+        ["Voorlichtingsactiviteiten", "Activiteiten waarbij informatie wordt gegeven om kennis en inzicht over een onderwerp te vergroten."],
+        ["Individuele activiteiten", "Activiteiten die één persoon alleen of met persoonlijke begeleiding uitvoert, afgestemd op diens wensen en mogelijkheden."],
+        ["Groepsactiviteiten", "Activiteiten die meerdere mensen samen uitvoeren."],
+        ["Homogene groepen", "Groepen waarvan de deelnemers belangrijke kenmerken of behoeften met elkaar gemeen hebben."],
+        ["Heterogene groepen", "Groepen waarin deelnemers juist verschillen, bijvoorbeeld in leeftijd, ervaring of mogelijkheden."],
+        ["Verticale groepen", "Groepen met deelnemers van verschillende leeftijden of ontwikkelingsfasen."],
+        ["Horizontale groepen", "Groepen met deelnemers van ongeveer dezelfde leeftijd of ontwikkelingsfase."],
+        ["Kinderopvang", "Professionele opvang en verzorging van kinderen wanneer ouders of verzorgers werken of andere verplichtingen hebben."],
+        ["Kinderdagverblijf", "Een opvanglocatie voor jonge kinderen, meestal vanaf de babyleeftijd tot ze naar de basisschool gaan."],
+        ["Peuterspeelzaal", "Een voorziening waar peuters op vaste momenten samen spelen en zich ontwikkelen; het aanbod kan per plaats verschillen."],
+        ["Buitenschoolse opvang (BSO)", "Opvang voor schoolgaande kinderen buiten de schooltijden, bijvoorbeeld voor of na school en tijdens schoolvakanties."],
+        ["Buurthuis of wijkcentrum", "Een ontmoetingsplek in de buurt waar bewoners activiteiten kunnen doen en elkaar kunnen ontmoeten."],
+        ["Jongerencentrum", "Een plek waar jongeren elkaar kunnen ontmoeten en deelnemen aan activiteiten of ondersteuning kunnen krijgen."],
+        ["Crisisopvang", "Tijdelijke opvang en ondersteuning voor mensen die door een acute situatie niet thuis kunnen verblijven."],
+        ["Vrouwenopvang", "Opvang en begeleiding voor vrouwen, en vaak hun kinderen, die wegens onveiligheid of huiselijk geweld niet thuis kunnen blijven."],
+        ["Asielzoekerscentra", "Opvanglocaties waar mensen verblijven tijdens de behandeling van hun verzoek om bescherming (asiel)."],
+        ["Statushouders", "Mensen die een verblijfsvergunning hebben gekregen omdat hun asielverzoek is ingewilligd."],
+        ["Dak- en thuislozenopvang", "Tijdelijke opvang en ondersteuning voor mensen zonder vaste woon- of verblijfplaats."],
+        ["Dagbesteding", "Begeleide activiteiten overdag die structuur, contact, ontwikkeling of passend werk bieden aan mensen die daar ondersteuning bij nodig hebben."],
+        ["24-uurszorg", "Zorg en ondersteuning die dag en nacht beschikbaar is, vaak voor mensen die voortdurend hulp nodig hebben."],
+        ["Verpleeghuis", "Een zorginstelling voor mensen die langdurig intensieve verpleging, verzorging of behandeling nodig hebben."],
+        ["Verzorgingshuis", "Een woonvoorziening voor ouderen die ondersteuning en verzorging nodig hebben; tegenwoordig is deze zorg vaak onderdeel van een woonzorgcentrum."],
+        ["Woonzorgcentrum", "Een woonlocatie waar mensen zelfstandig of met ondersteuning kunnen wonen en waar zorg beschikbaar is."],
+        ["Gehandicaptenzorg", "Zorg en ondersteuning voor mensen met een lichamelijke, verstandelijke of meervoudige beperking."],
+        ["Lichamelijke beperking", "Een beperking in het bewegen of lichamelijk functioneren die dagelijkse activiteiten moeilijker kan maken."],
+        ["Geestelijke beperking", "Een beperking in verstandelijke of cognitieve mogelijkheden die invloed kan hebben op leren, begrijpen en zelfstandig functioneren."]
+      ]},
+      { id: 2, name: "Hoofdstuk 2 · Ontwikkeling", terms: [
+        ["Doelgroep", "De groep mensen voor wie een activiteit, voorziening of vorm van ondersteuning bedoeld is."],
+        ["Lichamelijke ontwikkeling", "De groei en veranderingen van het lichaam, zoals lengte, gewicht, kracht en lichamelijke rijping."],
+        ["Motorische ontwikkeling", "De ontwikkeling van bewegingen en de controle daarover."],
+        ["Grove motoriek", "Bewegingen waarbij grote spiergroepen worden gebruikt, zoals lopen, springen en gooien."],
+        ["Fijne motoriek", "Kleine, nauwkeurige bewegingen, vooral met handen en vingers, zoals schrijven of een knoop dichtmaken."],
+        ["Oog-handcoördinatie", "Het goed op elkaar afstemmen van wat je ziet en de bewegingen die je met je handen maakt."],
+        ["Geestelijke of cognitieve ontwikkeling", "De ontwikkeling van denken, leren, onthouden, taal en het begrijpen en oplossen van problemen."],
+        ["Sociale ontwikkeling", "De ontwikkeling van omgaan en samenwerken met anderen en het aangaan van relaties."],
+        ["Zindelijk", "In staat zijn om urine en ontlasting op het gewenste moment op het toilet kwijt te raken."]
+      ]}
+    ];
+
+    const subjects = {
+      zorg: { name: "Mens en Zorg", chapters: zorgChapters },
+      gezondheid: { name: "Mens en Gezondheid", chapters: gezondheidChapters },
+      omgeving: { name: "Mens en Omgeving", chapters: omgevingChapters },
+      activiteit: { name: "Mens en Activiteit", chapters: activiteitChapters }
+    };
+    let activeSubject = "zorg";
+    let chapters = subjects[activeSubject].chapters;
+    let allTerms = [];
+    const refreshTerms = () => {
+      chapters = subjects[activeSubject].chapters;
+      allTerms = chapters.flatMap(chapter => chapter.terms.map(([term, definition]) => ({
+        term, definition, chapter: chapter.id, chapterName: chapter.name
+      })));
+      document.getElementById("term-total").textContent = allTerms.length;
+      document.getElementById("chapter-total").textContent = chapters.length;
+    };
+    const byId = id => chapters.find(chapter => chapter.id === Number(id));
+    refreshTerms();
+
+    const themeToggle = document.getElementById("theme-toggle");
+    themeToggle.addEventListener("click", () => {
+      const isDark = document.documentElement.dataset.theme !== "dark";
+      document.documentElement.dataset.theme = isDark ? "dark" : "light";
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+      themeToggle.textContent = isDark ? "☀️ Lichte modus" : "🌙 Donkere modus";
+      document.querySelector('meta[name="theme-color"]').content = isDark ? "#111a16" : "#f5f7f2";
+    });
+
+    function fillChapterSelect(select, includeAll) {
+      select.innerHTML = includeAll ? '<option value="all">Alle hoofdstukken</option>' : "";
+      chapters.forEach(chapter => {
+        const option = document.createElement("option");
+        option.value = chapter.id;
+        option.textContent = chapter.name;
+        select.append(option);
+      });
+    }
+    fillChapterSelect(document.getElementById("card-chapter"), false);
+    fillChapterSelect(document.getElementById("glossary-chapter"), true);
+
+    const cardChapter = document.getElementById("card-chapter");
+    let cardDeck = byId(cardChapter.value).terms;
+    let cardIndex = 0;
+    let isFlipped = false;
+    function renderCard() {
+      const chapter = byId(cardChapter.value);
+      cardDeck = chapter.terms;
+      const [term, definition] = cardDeck[cardIndex];
+      document.getElementById("card-chapter-name").textContent = chapter.name;
+      document.getElementById("card-count").textContent = `Kaart ${cardIndex + 1} van ${cardDeck.length}`;
+      document.getElementById("card-term").textContent = term;
+      document.getElementById("card-definition").textContent = definition;
+      document.getElementById("card-definition").hidden = !isFlipped;
+      document.getElementById("card-hint").hidden = isFlipped;
+      document.getElementById("flip-card").textContent = isFlipped ? "Verberg betekenis" : "Toon betekenis";
+      document.getElementById("card-progress").style.width = `${((cardIndex + 1) / cardDeck.length) * 100}%`;
+      document.querySelector(".progress-track").setAttribute("aria-valuenow", String(Math.round(((cardIndex + 1) / cardDeck.length) * 100)));
+      document.getElementById("previous-card").disabled = cardIndex === 0;
+      document.getElementById("next-card").disabled = cardIndex === cardDeck.length - 1;
+    }
+    function moveCard(step) {
+      cardIndex = Math.max(0, Math.min(cardDeck.length - 1, cardIndex + step));
+      isFlipped = false;
+      renderCard();
+    }
+    cardChapter.addEventListener("change", () => { cardIndex = 0; isFlipped = false; renderCard(); });
+    document.getElementById("flip-card").addEventListener("click", () => { isFlipped = !isFlipped; renderCard(); });
+    document.getElementById("previous-card").addEventListener("click", () => moveCard(-1));
+    document.getElementById("next-card").addEventListener("click", () => moveCard(1));
+    renderCard();
+
+    document.querySelectorAll(".tab[data-panel]").forEach(tab => tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(button => {
+        if (!button.dataset.panel) return;
+        const selected = button === tab;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-selected", String(selected));
+      });
+      document.querySelectorAll(".panel").forEach(panel => { panel.hidden = panel.id !== tab.dataset.panel; });
+    }));
+
+    const glossarySearch = document.getElementById("glossary-search");
+    const glossaryChapter = document.getElementById("glossary-chapter");
+    function renderGlossary() {
+      const query = glossarySearch.value.trim().toLocaleLowerCase("nl");
+      const selectedChapter = glossaryChapter.value;
+      const matches = allTerms.filter(item =>
+        (selectedChapter === "all" || item.chapter === Number(selectedChapter)) &&
+        (!query || `${item.term} ${item.definition} ${item.chapterName}`.toLocaleLowerCase("nl").includes(query))
+      );
+      const list = document.getElementById("glossary-list");
+      list.replaceChildren();
+      if (!matches.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "Geen begrippen gevonden. Probeer een andere zoekterm.";
+        list.append(empty);
+        return;
+      }
+      let lastChapter = null;
+      matches.forEach(item => {
+        if (item.chapter !== lastChapter) {
+          const heading = document.createElement("h3");
+          heading.className = "glossary-chapter";
+          heading.textContent = item.chapterName;
+          list.append(heading);
+          lastChapter = item.chapter;
+        }
+        const row = document.createElement("article");
+        row.className = "glossary-item";
+        const term = document.createElement("h3");
+        term.textContent = item.term;
+        const definition = document.createElement("p");
+        definition.textContent = item.definition;
+        row.append(term, definition);
+        list.append(row);
+      });
+    }
+    glossarySearch.addEventListener("input", renderGlossary);
+    glossaryChapter.addEventListener("change", renderGlossary);
+    renderGlossary();
+
+    document.querySelectorAll(".tab[data-subject]").forEach(button => button.addEventListener("click", () => {
+      activeSubject = button.dataset.subject;
+      document.querySelectorAll(".tab[data-subject]").forEach(subjectButton => {
+        const selected = subjectButton === button;
+        subjectButton.classList.toggle("active", selected);
+        subjectButton.setAttribute("aria-pressed", String(selected));
+      });
+      document.querySelector(".brand").lastChild.textContent = ` ${subjects[activeSubject].name}`;
+      document.title = `${subjects[activeSubject].name} — leer en oefen`;
+      document.getElementById("hero-description").textContent =
+        `Bereid je voor op je toets ${subjects[activeSubject].name}. Bekijk de begrippen per hoofdstuk, test jezelf en herhaal wat je nog lastig vindt.`;
+      refreshTerms();
+      fillChapterSelect(cardChapter, false);
+      fillChapterSelect(glossaryChapter, true);
+      cardChapter.value = String(chapters[0].id);
+      glossaryChapter.value = "all";
+      glossarySearch.value = "";
+      cardIndex = 0;
+      isFlipped = false;
+      renderCard();
+      renderGlossary();
+      showQuizStart();
+    }));
+
+    const quizContent = document.getElementById("quiz-content");
+    let quizQuestions = [];
+    let quizIndex = 0;
+    let quizScore = 0;
+    let quizAnswered = false;
+    function showQuizStart() {
+      quizContent.innerHTML = `
+        <div class="quiz-start">
+          <div class="controls"><label for="quiz-chapter" class="eyebrow">Kies je oefenstof</label><select id="quiz-chapter" aria-label="Kies hoofdstuk voor de oefentoets"><option value="all">Alle hoofdstukken</option></select></div>
+          <p>Je krijgt tien willekeurige vragen. Na elk antwoord zie je meteen of je het goed hebt. Aan het einde zie je je score.</p>
+          <button class="button primary" type="button" id="start-quiz">Start de oefentoets</button>
+        </div>`;
+      fillChapterSelect(document.getElementById("quiz-chapter"), true);
+      document.getElementById("start-quiz").addEventListener("click", startQuiz);
+    }
+    function startQuiz() {
+      const choice = document.getElementById("quiz-chapter").value;
+      const pool = choice === "all" ? allTerms : allTerms.filter(item => item.chapter === Number(choice));
+      quizQuestions = [...pool].sort(() => Math.random() - .5).slice(0, Math.min(10, pool.length));
+      quizIndex = 0;
+      quizScore = 0;
+      renderQuestion();
+    }
+    function renderQuestion() {
+      if (quizIndex >= quizQuestions.length) {
+        const percentage = Math.round((quizScore / quizQuestions.length) * 100);
+        const message = percentage === 100 ? "Fantastisch, alles goed!" : percentage >= 70 ? "Goed gedaan! Herhaal eventueel de lastige begrippen." : "Blijf oefenen: bekijk de leerkaarten en probeer het opnieuw.";
+        quizContent.innerHTML = `<div class="quiz-start"><div class="eyebrow">Toets afgerond</div><h2 style="font-size:2.4rem;margin:10px 0">${quizScore} van de ${quizQuestions.length} goed (${percentage}%)</h2><p>${message}</p><button class="button primary" type="button" id="restart-quiz">Opnieuw oefenen</button></div>`;
+        document.getElementById("restart-quiz").addEventListener("click", showQuizStart);
+        return;
+      }
+      quizAnswered = false;
+      const current = quizQuestions[quizIndex];
+      const choices = [current, ...allTerms.filter(item => item.term !== current.term).sort(() => Math.random() - .5).slice(0, 3)].sort(() => Math.random() - .5);
+      quizContent.innerHTML = `<div class="quiz-progress"><span>Vraag ${quizIndex + 1} van ${quizQuestions.length}</span><span>Score: ${quizScore}</span></div><div class="progress-track"><div class="progress-fill" style="width:${(quizIndex / quizQuestions.length) * 100}%"></div></div><h3 class="quiz-question"></h3><div class="answers"></div><p class="quiz-feedback" aria-live="polite"></p><div class="quiz-footer"><span class="card-count">${current.chapterName}</span><button class="button primary" type="button" id="next-question" disabled>Volgende vraag →</button></div>`;
+      quizContent.querySelector(".quiz-question").textContent = `Wat betekent: ${current.term}?`;
+      const answers = quizContent.querySelector(".answers");
+      choices.forEach(choice => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer";
+        button.textContent = choice.definition;
+        button.addEventListener("click", () => selectAnswer(button, choice, current, answers));
+        answers.append(button);
+      });
+      document.getElementById("next-question").addEventListener("click", () => { quizIndex += 1; renderQuestion(); });
+    }
+    function selectAnswer(button, choice, current, answers) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      const correct = choice.term === current.term;
+      if (correct) quizScore += 1;
+      answers.querySelectorAll(".answer").forEach(answer => { answer.disabled = true; });
+      button.classList.add(correct ? "correct" : "incorrect");
+      if (!correct) {
+        [...answers.children].find(answer => answer.textContent === current.definition)?.classList.add("correct");
+      }
+      const feedback = quizContent.querySelector(".quiz-feedback");
+      feedback.textContent = correct ? "Goed gedaan! Dat is het juiste antwoord." : `Helaas, het juiste antwoord is: ${current.definition}`;
+      feedback.classList.add(correct ? "good" : "bad");
+      const next = document.getElementById("next-question");
+      next.disabled = false;
+      next.textContent = quizIndex === quizQuestions.length - 1 ? "Bekijk mijn resultaat" : "Volgende vraag →";
+    }
+    showQuizStart();
+  </script>
+</body>
+</html>
