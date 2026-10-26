@@ -625,11 +625,27 @@
     let quizIndex = 0;
     let quizScore = 0;
     let quizAnswered = false;
+    const shuffle = items => [...items].sort(() => Math.random() - .5);
+    const pickRandom = (items, count) => shuffle(items).slice(0, Math.min(count, items.length));
+    function buildAllChapterQuiz(totalQuestions) {
+      const chapterQuestions = [];
+      const chapterPools = chapters.map(chapter => ({
+        id: chapter.id,
+        terms: allTerms.filter(item => item.chapter === chapter.id)
+      })).filter(chapter => chapter.terms.length > 0);
+      chapterPools.forEach(chapter => {
+        chapterQuestions.push(pickRandom(chapter.terms, 1)[0]);
+      });
+      const selectedKeys = new Set(chapterQuestions.map(item => `${item.chapter}:${item.term}`));
+      const remainingPool = allTerms.filter(item => !selectedKeys.has(`${item.chapter}:${item.term}`));
+      const extraQuestions = pickRandom(remainingPool, Math.max(0, totalQuestions - chapterQuestions.length));
+      return shuffle([...chapterQuestions, ...extraQuestions]);
+    }
     function showQuizStart() {
       quizContent.innerHTML = `
         <div class="quiz-start">
           <div class="controls"><label for="quiz-chapter" class="eyebrow">Kies je oefenstof</label><select id="quiz-chapter" aria-label="Kies hoofdstuk voor de oefentoets"><option value="all">Alle hoofdstukken</option></select></div>
-          <p>Je krijgt tien willekeurige vragen. Na elk antwoord zie je meteen of je het goed hebt. Aan het einde zie je je score.</p>
+          <p>Je krijgt tien vragen. Kies je voor alle hoofdstukken, dan zit er altijd minimaal één vraag per hoofdstuk in je toets. Na elk antwoord zie je meteen of je het goed hebt.</p>
           <button class="button primary" type="button" id="start-quiz">Start de oefentoets</button>
         </div>`;
       fillChapterSelect(document.getElementById("quiz-chapter"), true);
@@ -638,7 +654,12 @@
     function startQuiz() {
       const choice = document.getElementById("quiz-chapter").value;
       const pool = choice === "all" ? allTerms : allTerms.filter(item => item.chapter === Number(choice));
-      quizQuestions = [...pool].sort(() => Math.random() - .5).slice(0, Math.min(10, pool.length));
+      const questionCount = Math.min(10, pool.length);
+      if (choice === "all") {
+        quizQuestions = buildAllChapterQuiz(questionCount);
+      } else {
+        quizQuestions = pickRandom(pool, questionCount);
+      }
       quizIndex = 0;
       quizScore = 0;
       renderQuestion();
